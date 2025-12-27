@@ -1,5 +1,5 @@
 {
-  "name": "proyecto_innova-memoria",
+  "name": "proyecto_innova_memoria",
   "version": "1.0.0",
   "description": "Sistema Innova SIGET en memoria",
   "main": "app.js",
@@ -8,8 +8,17 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RosaliaJJK/PROYECTO_INNOVA_Memoria.git"
+  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RosaliaJJK/PROYECTO_INNOVA_Memoria/issues"
+  },
+  "homepage": "https://github.com/RosaliaJJK/PROYECTO_INNOVA_Memoria",
   "dependencies": {
     "express": "^4.19.2",
     "ejs": "^3.1.10",
