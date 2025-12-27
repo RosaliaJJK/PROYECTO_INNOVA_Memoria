@@ -1,35 +1,42 @@
 const express = require("express");
 const path = require("path");
 
-const alumnoRoutes = require("./routes/alumno");
-const docenteRoutes = require("./routes/docente");
-const apiRoutes = require("./routes/api");
+const app = express();
 
-const app = express(); // 👈 ESTO FALTABA (CLAVE)
-
-// Middlewares
-app.use(express.urlencoded({ extended: false }));
+/* =========================
+   MIDDLEWARES
+========================= */
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Archivos públicos
+/* =========================
+   ARCHIVOS ESTÁTICOS
+========================= */
 app.use(express.static(path.join(__dirname, "public")));
 
-// Vistas
-app.set("views", path.join(__dirname, "views"));
+/* =========================
+   EJS
+========================= */
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
-// Rutas
+/* =========================
+   RUTAS
+========================= */
+const alumnoRoutes = require("./routes/alumno");
 app.use("/alumno", alumnoRoutes);
-app.use("/docente", docenteRoutes);
-app.use("/api", apiRoutes);
 
-// Ruta principal (login)
+/* =========================
+   RAÍZ
+========================= */
 app.get("/", (req, res) => {
-  res.render("login");
+  res.redirect("/alumno");
 });
 
-// Puerto para Render
+/* =========================
+   PUERTO (RENDER)
+========================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log("Servidor corriendo en puerto " + PORT);
+  console.log("Servidor activo en puerto", PORT);
 });

@@ -1,20 +1,60 @@
 const express = require("express");
 const router = express.Router();
 
-// Memoria temporal
+/*
+  MEMORIA TEMPORAL
+  (luego se conecta a BD)
+*/
+const clasesActive = [
+  {
+    id: 1,
+    grupo: "3A",
+    docente: "Ing. López",
+    laboratorio: "Lab Sistemas",
+    hora_inicio: "08:00",
+    hora_fin: "10:00",
+    carrera: "Ingeniería en Sistemas"
+  }
+];
+
 const alumnos = [];
 
-// Mostrar formulario (ejemplo)
+/*
+  MOSTRAR VISTA (EJS ORIGINAL)
+*/
 router.get("/", (req, res) => {
-  res.render("alumno");
+  res.render("alumno", {
+    clasesActive,
+    user: {
+      nombre: "Alumno Demo"
+    }
+  });
 });
 
-// Registrar alumno
+/*
+  REGISTRAR ENTRADA (BITÁCORA)
+*/
 router.post("/registrar", (req, res) => {
-  const { nombre, email, password } = req.body;
+  const {
+    id_clase,
+    nombre_alumno,
+    matricula,
+    equipo_numero,
+    observaciones
+  } = req.body;
 
-  alumnos.push({ nombre, email, password });
-  res.redirect("/");
+  alumnos.push({
+    id_clase,
+    nombre_alumno,
+    matricula,
+    equipo_numero,
+    observaciones,
+    fecha: new Date()
+  });
+
+  console.log("Registro guardado:", alumnos);
+
+  res.redirect("/alumno");
 });
 
 module.exports = router;
