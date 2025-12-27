@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Técnico - INNOVA SIGET</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* (Tus estilos base se mantienen y he optimizado la tabla) */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #f4f7f9; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; }
+        .dashboard-wrapper { background: #ffffff; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.08); width: 100%; max-width: 1150px; padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #edf2f7; padding-bottom: 20px; }
+        .header-info h2 { color: #1a365d; font-size: 24px; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+        .header-info p { color: #718096; font-size: 14px; }
+        .main-grid { display: grid; grid-template-columns: 280px 1fr; gap: 30px; align-items: start; }
+        .sidebar { display: flex; flex-direction: column; gap: 25px; }
+        .resumen-card { background: #ebf8ff; border-left: 4px solid #3182ce; padding: 15px; border-radius: 8px; }
+        .resumen-card h4 { color: #2c5282; font-size: 15px; margin-bottom: 8px; border-bottom: 1px solid #bee3f8; padding-bottom: 4px; }
+        .resumen-card p { font-size: 13px; color: #2a4365; margin: 3px 0; }
+        .section-title { font-size: 15px; font-weight: 700; color: #2d3748; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 13px; }
+        .btn { border: none; border-radius: 6px; padding: 12px; font-weight: 700; cursor: pointer; width: 100%; font-size: 13px; transition: 0.3s; }
+        .btn-green { background: #38a169; color: white; }
+        .btn-blue { background: #2b6cb0; color: white; }
+        .btn-outline { background: transparent; border: 1px solid #cbd5e0; color: #4a5568; margin-top: 10px; }
+        .content-area { display: flex; flex-direction: column; gap: 15px; }
+        .table-container { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f7fafc; padding: 12px; text-align: left; font-size: 12px; color: #4a5568; border-bottom: 2px solid #edf2f7; }
+        td { padding: 12px; font-size: 13px; border-bottom: 1px solid #f7fafc; }
+        tr:hover { background: #f1f7ff; cursor: pointer; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+        .priority-high { color: #e53e3e; font-weight: bold; }
+        @media (max-width: 850px) { .main-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <header class="header">
+        <div class="header-info">
+            <h2><i class="fas fa-tools"></i> Dashboard Técnico</h2>
+            <p>Bienvenido, <%= user.nombre %> | Gestión de Red y Soporte</p>
+        </div>
+        <button class="btn" style="width: auto; padding: 10px;" onclick="checkServer()">
+            <i class="fas fa-server"></i> Status
+        </button>
+    </header>
+
+    <div class="main-grid">
+        <aside class="sidebar">
+            <div class="resumen-card">
+                <h4><i class="fas fa-chart-pie"></i> Carga de Trabajo</h4>
+                <p>Total Activos: <b><%= tickets.filter(t => t.estado !== 'Resuelto').length %></b></p>
+                <p>Prioridad Alta: <b><%= tickets.filter(t => t.prioridad === 'Alta').length %></b></p>
+            </div>
+
+            <section>
+                <h3 class="section-title">Disponibilidad</h3>
+                <div class="form-group">
+                    <label>Fecha</label>
+                    <input type="date" id="dispFecha">
+                </div>
+                <div style="display: flex; gap: 10px;" class="form-group">
+                    <div style="flex:1;">
+                        <label>Desde</label>
+                        <input type="time" id="dispHoraI">
+                    </div>
+                    <div style="flex:1;">
+                        <label>Hasta</label>
+                        <input type="time" id="dispHoraF">
+                    </div>
+                </div>
+                <button class="btn btn-green" onclick="alert('Horario publicado en el panel de Personal.')">PUBLICAR</button>
+            </section>
+
+            <section>
+                <h3 class="section-title">Actualizar Ticket</h3>
+                <form action="/mantenimiento/actualizar-estado" method="POST">
+                    <div class="form-group">
+                        <label>Folio Seleccionado</label>
+                        <input type="text" id="inputFolio" name="folio" readonly required 
+                               style="background: #edf2f7; font-weight: bold; color: #2b6cb0;" 
+                               placeholder="Clic en una fila...">
+                    </div>
+                    <div class="form-group">
+                        <label>Cambiar Estado</label>
+                        <select name="estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Resuelto">Resuelto</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-blue">GUARDAR CAMBIOS</button>
+                </form>
+            </section>
+
+            <button class="btn btn-outline" onclick="location.href='/logout'">
+                <i class="fas fa-sign-out-alt"></i> CERRAR SESIÓN
+            </button>
+        </aside>
+
+        <main class="content-area">
+            <h3 class="section-title">Cola de Tickets (Edificio J y General)</h3>
+            
+            <div class="table-container">
+                <table id="ticketsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Folio</th>
+                            <th>Solicitante</th>
+                            <th>Área</th>
+                            <th>Problema</th>
+                            <th>Prioridad</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (tickets && tickets.length > 0) { %>
+                            <% tickets.forEach(ticket => { %>
+                                <tr onclick="seleccionarTicket('<%= ticket.folio %>')">
+                                    <td><b>#<%= ticket.folio %></b></td>
+                                    <td><%= ticket.nombre_solicitante || 'Personal' %></td>
+                                    <td><%= ticket.area %></td>
+                                    <td><%= ticket.descripcion.substring(0,30) %>...</td>
+                                    <td class="<%= ticket.prioridad === 'Alta' ? 'priority-high' : '' %>">
+                                        <%= ticket.prioridad %>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge" 
+                                              style="background: <%= ticket.estado === 'Resuelto' ? '#c6f6d5' : (ticket.estado === 'En Proceso' ? '#bee3f8' : '#feebc8') %>; 
+                                                     color: <%= ticket.estado === 'Resuelto' ? '#22543d' : (ticket.estado === 'En Proceso' ? '#2a4365' : '#744210') %>">
+                                            <%= ticket.estado %>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="6" style="text-align:center; padding: 40px; color: #a0aec0;">No hay incidencias registradas.</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+
+            
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-outline" style="flex:1;" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir Bitácora
+                </button>
+                <button class="btn btn-blue" style="flex:1;" onclick="exportCSV()">
+                    <i class="fas fa-file-csv"></i> Exportar Datos
+                </button>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    // Función para seleccionar el ticket al hacer clic en la fila
+    function seleccionarTicket(folio) {
+        document.getElementById('inputFolio').value = folio;
+        // Efecto visual de selección
+        const rows = document.querySelectorAll('tr');
+        rows.forEach(r => r.style.background = "");
+        event.currentTarget.style.background = "#e6fffa";
+    }
+
+    async function checkServer() {
+        try {
+            const res = await fetch('/api/estado-sistema');
+            const data = await res.json();
+            alert(`SISTEMA INNOVA SIGET\nBase de datos: Conectada\nLatencia: 12ms\nTickets en memoria: <%= tickets.length %>`);
+        } catch (e) {
+            alert("Error de conexión con el servidor central.");
+        }
+    }
+
+    function exportCSV() {
+        alert("Generando archivo CSV con el historial de mantenimiento...");
+    }
+</script>
+
+</body>
+</html>

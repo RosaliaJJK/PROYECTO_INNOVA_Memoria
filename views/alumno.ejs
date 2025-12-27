@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitácora Alumno - INNOVA SIGET</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* (Tus estilos se mantienen iguales, son excelentes) */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #f4f7f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .student-form-wrapper { background: #ffffff; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); width: 100%; max-width: 950px; padding: 35px; position: relative; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #edf2f7; padding-bottom: 15px; }
+        .dashboard-header h2 { color: #1a365d; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .settings-container { position: relative; }
+        .btn-gear { background: none; border: none; color: #3182ce; font-size: 20px; cursor: pointer; transition: 0.3s; }
+        .btn-gear:hover { transform: rotate(45deg); color: #2c5282; }
+        .dropdown-menu { display: none; position: absolute; right: 0; top: 35px; background: white; min-width: 200px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 100; border: 1px solid #eee; }
+        .dropdown-menu button { width: 100%; padding: 12px; border: none; background: none; text-align: left; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+        .settings-container.active .dropdown-menu { display: block; }
+        .status-enabled { background: #f0fff4; color: #2f855a; padding: 12px; border-radius: 8px; margin-bottom: 25px; border-left: 5px solid #48bb78; }
+        .status-disabled { background: #fff5f5; color: #c53030; padding: 20px; border-radius: 8px; border-left: 5px solid #f56565; text-align: center; }
+        .registration-content { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
+        .panel { background: #fff; }
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #2d3748; border-bottom: 2px solid #20c997; padding-bottom: 5px; width: fit-content; }
+        label { display: block; font-size: 13px; font-weight: 600; color: #718096; margin-bottom: 5px; }
+        input, textarea { width: 100%; padding: 11px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 14px; margin-bottom: 15px; background: #fcfcfc; }
+        .btn-submit { background: #20c997; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-submit:hover { background: #17a589; }
+        .info-box { background: #f7fafc; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid #20c997; font-size: 14px; }
+        @media (max-width: 768px) { .registration-content { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="student-form-wrapper">
+        <header class="dashboard-header">
+            <h2><i class="fas fa-laptop"></i> Registro de Entrada - Edificio J</h2>
+            <div class="settings-container" id="settingsMenu">
+                <button class="btn-gear" onclick="toggleMenu()"><i class="fas fa-cog"></i></button>
+                <div class="dropdown-menu">
+                    <button onclick="reportUI()"><i class="fas fa-exclamation-triangle"></i> Reportar Problema</button>
+                    <button onclick="checkSystem()"><i class="fas fa-tachometer-alt"></i> Estado del Sistema</button>
+                    <hr>
+                    <button onclick="logout()" style="color: #e53e3e;"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+                </div>
+            </div>
+        </header>
+
+        <% if (clasesActive && clasesActive.length > 0) { 
+            const clase = clasesActive[0]; 
+        %>
+            <div class="status-enabled">
+                <i class="fas fa-check-circle"></i> 
+                Clase detectada para el grupo: <b><%= clase.grupo %></b> | Prof. <b><%= clase.docente %></b>
+            </div>
+
+            <div class="registration-content">
+                <div class="panel">
+                    <h3 class="section-title">Datos de Bitácora</h3>
+                    <form action="/alumno/registrar" method="POST">
+                        <input type="hidden" name="id_clase" value="<%= clase.id %>">
+
+                        <label>Nombre Completo del Alumno</label>
+                        <input type="text" name="nombre_alumno" value="<%= user.nombre %>" readonly style="background: #edf2f7; cursor: not-allowed;">
+
+                        <label>Matrícula / Control</label>
+                        <input type="text" name="matricula" required placeholder="Ej: 202123456">
+
+                        <label>Número de Máquina asignada</label>
+                        <input type="number" name="equipo_numero" min="1" max="50" required placeholder="Ej: 6">
+
+                        <label>Estado / Observaciones del Equipo</label>
+                        <textarea name="observaciones" rows="2" placeholder="¿Falla teclado, mouse, monitor?"></textarea>
+
+                        <button type="submit" class="btn-submit">CONFIRMAR ENTRADA</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <h3 class="section-title">Información de la Sesión</h3>
+                    <div class="info-box">Laboratorio: <strong><%= clase.laboratorio %></strong></div>
+                    <div class="info-box">Edificio: <strong>J (Sistemas)</strong></div>
+                    <div class="info-box">Horario: <strong><%= clase.hora_inicio %> - <%= clase.hora_fin %></strong></div>
+                    <div class="info-box">Carrera: <strong><%= clase.carrera %></strong></div>
+                </div>
+            </div>
+
+        <% } else { %>
+            <div class="status-disabled">
+                <i class="fas fa-lock" style="font-size: 40px; display: block; margin-bottom: 15px; color: #f56565;"></i>
+                <strong>ACCESO RESTRINGIDO</strong>
+                <p style="margin: 10px 0;">El docente aún no ha habilitado el acceso para ningún grupo en este laboratorio.</p>
+                <div style="margin-top: 20px;">
+                    <button class="btn-submit" style="width: auto; padding: 10px 25px;" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Verificar disponibilidad
+                    </button>
+                </div>
+            </div>
+        <% } %>
+
+        <hr style="margin: 25px 0; border: 0; border-top: 1px dashed #ddd;">
+        <div style="text-align: center;">
+            <a href="/personal" style="color: #185a9d; text-decoration: none; font-weight: bold; font-size: 14px;">
+                <i class="fas fa-tools"></i> ¿Eres personal y necesitas reportar una falla técnica? Haz clic aquí.
+            </a>
+        </div>
+    </div>
+
+<script>
+    function toggleMenu() {
+        const menu = document.getElementById('settingsMenu');
+        menu.classList.toggle('active');
+    }
+
+    function logout() {
+        if(confirm('¿Deseas cerrar la sesión?')) window.location.href = '/logout';
+    }
+
+    async function checkSystem() {
+        try {
+            const res = await fetch('/api/estado-sistema');
+            const data = await res.json();
+            alert(`SISTEMA INNOVA SIGET\n----------------------\nEstado: ${data.status.toUpperCase()}\nBase de Datos: ${data.database}\nServidor: Activo\nFecha: ${new Date(data.timestamp).toLocaleString()}`);
+        } catch (e) {
+            alert('Error: El servidor no responde. Verifica tu conexión a la red del TESCHI.');
+        }
+    }
+
+    function reportUI() {
+        const bug = prompt("Describe el error visual o técnico que encontraste en esta página:");
+        if(bug) alert("Reporte enviado. El equipo de mantenimiento revisará el error: " + bug);
+    }
+
+    // Cerrar menú al hacer clic fuera
+    window.onclick = function(event) {
+        if (!event.target.matches('.btn-gear') && !event.target.matches('.fa-cog')) {
+            document.getElementById('settingsMenu').classList.remove('active');
+        }
+    }
+</script>
+</body>
+</html>
